@@ -1,11 +1,13 @@
 package info.lemuu.jedis.handler;
 
-import java.util.List;
-import java.util.LinkedList;
-import info.lemuu.jedis.thread.RedisThread;
 import info.lemuu.jedis.credentials.RedisCredentials;
 import info.lemuu.jedis.handler.listener.JedisListener;
 import info.lemuu.jedis.handler.reflection.JedisInvoke;
+import info.lemuu.jedis.thread.RedisThread;
+
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 public abstract class RedisListener extends RedisThread {
 	
@@ -24,10 +26,13 @@ public abstract class RedisListener extends RedisThread {
 	}
 
 	protected static void callEvent(String channel, String message) {
-		new Thread(()->{
-			RedisListener.listeners.forEach(jedisListener -> {
-				new JedisInvoke(jedisListener, channel, message).invoke();
-			});
+		new Thread(()-> {
+			Iterator<JedisListener> iterator = RedisListener.listeners.iterator();
+			synchronized (iterator) {
+				while (iterator.hasNext()) {
+					new JedisInvoke(iterator.next(), channel, message).invoke();
+				}
+			}
 		}).start();
 	}
 
