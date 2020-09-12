@@ -1,20 +1,21 @@
 package info.lemuu.jedis.handler.reflection;
 
-import java.util.List;
-import java.util.Arrays;
-import java.lang.reflect.Method;
-import java.util.stream.Collectors;
 import info.lemuu.jedis.handler.Channel;
-import java.lang.reflect.InvocationTargetException;
-import info.lemuu.jedis.handler.listener.JedisListener;
 import info.lemuu.jedis.handler.event.JedisMessageEvent;
+import info.lemuu.jedis.handler.listener.JedisListener;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class JedisInvoke {
 	
-	private String channel;
-	private String message;
-	private JedisListener jedisListener;
-	
+	private final String channel;
+	private final String message;
+	private final JedisListener jedisListener;
+
 	public JedisInvoke(JedisListener jedisListener, String channel, String message) {
 		this.channel = channel;
 		this.message = message;
@@ -30,10 +31,14 @@ public class JedisInvoke {
 	}
 
 	public void invoke() {
-		this.collectMethods().forEach(method -> {
+		List<Method> methods = this.collectMethods();
+		if (methods == null) return;
+		methods.forEach(method -> {
 			try {
 				method.setAccessible(true);
-				method.invoke(jedisListener, new JedisMessageEvent(this.channel, this.message));
+				if (jedisListener != null) {
+					method.invoke(jedisListener, new JedisMessageEvent(this.channel, this.message));
+				}
 			} catch (IllegalAccessException | IllegalArgumentException ex) {
 				ex.printStackTrace();
 			} catch (InvocationTargetException ex) {
