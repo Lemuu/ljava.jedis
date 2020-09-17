@@ -1,7 +1,6 @@
 package info.lemuu.jedis.thread.runnable;
 
 import info.lemuu.jedis.Redis;
-import info.lemuu.jedis.handler.JedisPubSubHandler;
 
 public class RunnableJedisPubSub implements Runnable {
 	
@@ -15,11 +14,7 @@ public class RunnableJedisPubSub implements Runnable {
 	public void run() {
 		if (this.redis.getRedisFallBack().canReconnect()) {
 			this.redis.reconnectPubSub();
-			return;
 		}
-		
-		this.redis.getJedisPool().getResource()
-			.subscribe(new JedisPubSubHandler(), this.redis.getChannels());
 	}
 
 }

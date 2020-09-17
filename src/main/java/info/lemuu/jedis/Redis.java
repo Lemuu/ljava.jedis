@@ -1,12 +1,17 @@
 package info.lemuu.jedis;
 
-import redis.clients.jedis.Jedis;
-import info.lemuu.jedis.handler.RedisListener;
 import info.lemuu.jedis.credentials.RedisCredentials;
-import info.lemuu.jedis.thread.runnable.RunnableJedisPubSub;
+import info.lemuu.jedis.handler.JedisPubSubHandler;
+import info.lemuu.jedis.handler.RedisListener;
+import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Redis extends RedisListener implements Cloneable {
+
+	private final static List<Redis> redis = new ArrayList<Redis>();
 
 	public Redis(RedisCredentials redisCredentials) {
 		super(redisCredentials);
@@ -28,14 +33,14 @@ public class Redis extends RedisListener implements Cloneable {
 	
 	@Override
 	public void init() {
-		this.thread = new Thread(new RunnableJedisPubSub(this), "Thread Redis channels");
-		this.thread.start();
+		redis.add(this);
+		new Thread(()-> {
+			this.jedisPool.getResource().subscribe(new JedisPubSubHandler(), this.getChannels());
+		}).start();
 	}
 
-	@SuppressWarnings("deprecation")
 	public void reconnectPubSub() {
 		this.getRedisFallBack().updateMillis();
-		this.thread.stop();
 		this.reconnect();
 		this.init();
 	}
@@ -49,5 +54,8 @@ public class Redis extends RedisListener implements Cloneable {
 			return new Redis(super.getRedisCredentials());
 		}
 	}
-	
+
+	public static List<Redis> getRedis() {
+		return redis;
+	}
 }

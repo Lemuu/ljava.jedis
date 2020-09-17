@@ -1,13 +1,13 @@
 package info.lemuu.jedis.thread;
 
-import java.util.Arrays;
-import info.lemuu.jedis.fallback.RedisFallBack;
 import info.lemuu.jedis.connection.RedisConnection;
 import info.lemuu.jedis.credentials.RedisCredentials;
+import info.lemuu.jedis.fallback.RedisFallBack;
+
+import java.util.Arrays;
 
 public abstract class RedisThread extends RedisConnection implements IRedisThread {
 
-	protected Thread thread;
 	protected StringBuilder channels;
 	private final RedisFallBack redisFallBack;
 	
@@ -19,12 +19,12 @@ public abstract class RedisThread extends RedisConnection implements IRedisThrea
 
 	@Override
 	public void subscribeChannel(String channel) {
-		this.channels.append(channel + "@");
+		this.channels.append(channel).append("@");
 	}
 
 	@Override
 	public void subscribeChannels(String... channels) {
-		Arrays.asList(channels).forEach(channel -> this.channels.append(channel + "@"));
+		Arrays.asList(channels).forEach(channel -> this.channels.append(channel).append("@"));
 	}
 	
 	public String[] getChannels() {
@@ -39,12 +39,9 @@ public abstract class RedisThread extends RedisConnection implements IRedisThrea
 		return redisFallBack;
 	}
 	
-	@SuppressWarnings("deprecation")
 	@Override
 	public void closeConnection() {
-		this.thread.stop();
 		this.jedisPool.close();
-		this.redisFallBack.stop();
 	}
-	
+
 }

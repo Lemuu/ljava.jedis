@@ -9,7 +9,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 public abstract class RedisListener extends RedisThread {
-	
+
+	private boolean channelsSubscribed;
 	private final static List<JedisListener> listeners = new LinkedList<JedisListener>();
 	
 	public RedisListener(RedisCredentials redisCredentials) {
@@ -31,6 +32,13 @@ public abstract class RedisListener extends RedisThread {
 				jedisInvoke.invoke();
 			});
 		}).start();
+	}
+
+	public boolean isChannelsSubscribed() {
+		return channelsSubscribed;
+	}
+	public void setChannelsSubscribed(boolean channelsSubscribed) {
+		this.channelsSubscribed = channelsSubscribed;
 	}
 
 }
